@@ -7,6 +7,7 @@
 //
 
 #import "ANGifEncoder.h"
+#import "ANGifPalette.h"
 
 @interface ANGifEncoder ()
 
@@ -17,40 +18,50 @@
 
 // lzw compression
 - (NSData *)nineBitData:(const char *)originalBytes length:(int)l;
-- (NSData *)lzwCompression:(NSData *)original;
+//- (NSData *)lzwCompression:(NSData *)original;
 
 @end
 
 @implementation ANGifEncoder
 
-- (id)initWithFile:(NSString *)fileName animated:(BOOL)animated {
+@synthesize colorPalette;
+
+- (id)initWithFile:(NSString *)fileName withColorPalette:(ANGifPalette*)givenPalette animated:(BOOL)animated {
 	if (self = [super init]) {
 		_fileName = [[NSString stringWithString:fileName] retain];
+		[self setColorPalette:givenPalette];
 		_animated = animated;
 	}
 	return self;
 }
+
 - (void)beginFile:(CGSize)size delayTime:(float)delay {
 	_size = size;
 	_delay = delay;
 	FILE * fp = fopen([_fileName UTF8String], "w");
 	fclose(fp);
 	_fileHandle = [[NSFileHandle fileHandleForWritingAtPath:_fileName] retain];
+	
 	// write the header information later
 	[_fileHandle writeData:[self gifHeader]];
+	
 	// write logical screen descriptor
-	//  extraInfo = 256 colors at 3 * 8 bits/primary
-	char extraInfo = 0xF7;
 	[_fileHandle writeLittleShort:(UInt16)(size.width)];
 	[_fileHandle writeLittleShort:(UInt16)(size.height)];
+	
+	//  extraInfo = 256 colors at 3 * 8 bits/primary
+	char extraInfo = 0xF7;
 	[_fileHandle writeLittleChar:(UInt8)extraInfo];
+	
 	//  background color #0
-	[_fileHandle writeLittleChar:0];
+	[_fileHandle writeLittleChar:(UInt8)255];
+	
 	//  pixel aspect ratio (set at zereo)
 	[_fileHandle writeLittleChar:0];
 	
-	// WRITE GLOBAL COLOUR TABLE
-	[_fileHandle writeData:[self globalColorTable]];
+	// WRITE GLOBAL COLOUR TABLE from colorPalette
+	[_fileHandle writeData:[colorPalette getColorTable]];
+	//[_fileHandle writeData:[self globalColorTable]];
 	
 	// WRITE THE APPLICATION PLUGIN FOR ANIMATION
 	if (_animated) {
@@ -61,6 +72,7 @@
 	// should be images, compressed by LZW
 	
 }
+
 - (void)addImage:(ANGifBitmap *)bitmap {
 	
 	// WRITE THE GRAPHICS CONTROL EXTENSION
@@ -70,25 +82,31 @@
 	[_fileHandle writeLittleChar:0];
 	
 	NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+	
 	// add an image frame here
 	[_fileHandle writeLittleChar:(UInt8)(',')];
+	
 	// coordinates of top left image
 	[_fileHandle writeLittleInt:0];
+	
 	// size
 	[_fileHandle writeLittleShort:(UInt16)(_size.width)];
 	[_fileHandle writeLittleShort:(UInt16)(_size.height)];
+	
 	// no local color table
 	[_fileHandle writeLittleChar:0];
+	
 	// LZW data
 	//  LZW min. code size (symbol width)
 	[_fileHandle writeLittleChar:8];
+	
 	// write a ton of code
 	
 	NSData * bmp = [bitmap smallBitmapData];
 	const char * bitmapData = [bmp bytes];
 	int bmplength = [bmp length];
 	NSData * lzwdata = [self nineBitData:bitmapData length:bmplength];
-	NSLog(@"LZW Length: %d", [lzwdata length]);
+	//NSLog(@"LZW Length: %d", [lzwdata length]);
 	int index = 0;
 	int totalLength = 0;
 	while (index < [lzwdata length]) {
@@ -107,12 +125,14 @@
 		index += blockLength;
 		[pool drain];
 	}
-	NSLog(@"%d", totalLength);
+	//NSLog(@"%d", totalLength);
+	
 	// terminating sub-block
 	[_fileHandle writeLittleChar:0];
 	
 	[pool drain];
 }
+
 - (void)endFile {
 	// close off the file with any bytes needed
 	// update any data in the headers
@@ -133,6 +153,9 @@
 		[_fileHandle release];
 		_fileHandle = nil;
 	}
+	
+	[colorPalette release];
+	
 	[super dealloc];
 }
 
@@ -162,6 +185,7 @@
 		bytes[0] = red;
 		bytes[1] = green;
 		bytes[2] = blue;
+		
 		// create the RGB
 		[colorTable appendBytes:bytes length:3];
 		if (i == 255) break;
@@ -172,30 +196,30 @@
 - (NSData *)graphicsControlExtension {
 	NSMutableData * gce = [[NSMutableData alloc] init];
 	NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+	
 	// sentinel and GCE label (F9)
 	char sentinelData[2];
 	sentinelData[0] = '!';
 	sentinelData[1] = 0xF9;
-	[gce appendData:[NSData dataWithBytes:sentinelData 
-								   length:2]];
+	[gce appendData:[NSData dataWithBytes:sentinelData length:2]];
+	
 	// four bytes of extension data
 	UInt8 extensionLength = 4;
-	[gce appendData:[NSData dataWithBytes:&extensionLength
-								   length:1]];
+	[gce appendData:[NSData dataWithBytes:&extensionLength length:1]];
 	
 	// there is a transparent color
 	UInt8 transColor = 1;
-	[gce appendData:[NSData dataWithBytes:&transColor
-								   length:1]];
+	// force redraw on new frame -- needed for animations with transparency
+	transColor |= 3 << 3;
+	[gce appendData:[NSData dataWithBytes:&transColor length:1]];
 	
 	// animation delay (hundreths of a second)
 	UInt16 delayTime = (UInt16)((int)_delay * 100);
 	[gce appendData:[NSData dataWithBytes:&delayTime length:2]];
 	
-	// transparent color index (0)
-	UInt8 transparentColor = 0;
-	[gce appendData:[NSData dataWithBytes:&transparentColor
-								   length:1]];
+	// transparent color index (0) -- changed to last  index
+	UInt8 transparentColor = 255;
+	[gce appendData:[NSData dataWithBytes:&transparentColor length:1]];
 	
 	[pool drain];
 	return [gce autorelease];
@@ -218,7 +242,7 @@
 }
 
 - (NSData *)nineBitData:(const char *)originalBytes length:(int)l {
-	NSLog(@"Original bytes");
+	//NSLog(@"Original bytes");
 	for (int i = 0; i < l; i++) {
 		// NSLog(@"%02x", (unsigned char)originalBytes[i]);
 	}
@@ -262,8 +286,7 @@
 	char * returnData = (char *)BitBufferGetBytes(compressed, &length);
 	BitBufferFree(compressed, 0);
 	BitBufferFree(orig, 1);
-	return [NSData dataWithBytesNoCopy:returnData
-								length:length freeWhenDone:YES];
+	return [NSData dataWithBytesNoCopy:returnData length:length freeWhenDone:YES];
 }
 
 @end

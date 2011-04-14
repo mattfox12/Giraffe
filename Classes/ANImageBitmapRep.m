@@ -10,9 +10,11 @@
 
 
 @implementation ANImageBitmapRep
+
 - (void)setNeedsUpdate {
 	changed = YES;
 }
+
 - (void)setBrightness:(float)percent {
 	if (percent > 1) {
 		int width, height;
@@ -34,6 +36,7 @@
 	CGContextFillRect(ctx, CGRectMake(0, 0, s.width, s.height));
 	CGContextRestoreGState(ctx);
 }
+
 - (void)setQuality:(float)percent {
 	CGSize s = [self size];
 	CGSize back = [self size];
@@ -43,6 +46,7 @@
 	CGImageRelease([self CGImage]);
 	[self setSize:back];
 }
+
 + (CGContextRef)CreateARGBBitmapContextWithSize:(CGSize)size {
 	CGContextRef context = NULL;
     CGColorSpaceRef colorSpace;
@@ -95,6 +99,7 @@
 	
     return context;	
 }
+
 + (CGContextRef)CreateARGBBitmapContextWithImage:(CGImageRef)image {
 	CGContextRef context = NULL;
     CGColorSpaceRef colorSpace;
@@ -151,6 +156,7 @@
 	
     return context;	
 }
+
 - (id)initWithSize:(CGSize)sz {
 	if (self = [super init]) {
 		// load the image into the context
@@ -160,6 +166,7 @@
 	}
 	return self;
 }
+
 - (id)initWithImage:(UIImage *)_img {
 	if (self = [super init]) {
 		// load the image into the context
@@ -171,9 +178,11 @@
 	}
 	return self;
 }
+
 + (id)imageBitmapRepWithImage:(UIImage *)_img {
 	return [[[ANImageBitmapRep alloc] initWithImage:_img] autorelease];
 }
+
 + (id)imageBitmapRepNamed:(NSString *)_resourceName {
 	// we wanna use an autorelease pool here
 	// to make sure we don't retain
@@ -183,6 +192,7 @@
 	[pool drain];
 	return [rep autorelease];
 }
+
 - (void)getPixel:(CGFloat *)pxl atX:(int)x y:(int)y {
 	CGSize s = [self size];
 	unsigned char * c = (unsigned char *)&bitmapData[((y * (int)(s.width))+x) * 4];
@@ -202,6 +212,7 @@
 	if (pxl[3] > 1) pxl[3] = 1;
 	
 }
+
 - (void)setPixel:(CGFloat *)pxl atX:(int)x y:(int)y {
 	CGSize s = [self size];
 	changed = YES;
@@ -232,6 +243,7 @@
 	pxl[2] = c[2];
 	pxl[3] = c[3];
 }
+
 - (void)set255Pixel:(char *)pxl atX:(int)x y:(int)y {
 	CGSize s = [self size];
 	changed = YES;
@@ -241,6 +253,7 @@
 	c[2] = pxl[2];
 	c[3] = pxl[3];
 }
+
 - (CGImageRef)CGImage {
 	if (!changed) {
 		// their job to release it
@@ -252,12 +265,14 @@
 		return CGImageRetain(img);
 	}
 }
+
 - (UIImage *)image {
 	CGImageRef _img = [self CGImage];
 	CGImageRelease(_img);
 	// I don't know how UIImage deals with these things.
 	return [UIImage imageWithCGImage:_img];
 }
+
 - (void)setSize:(CGSize)size {
 	CGImageRef _img = [self CGImage];
 	
@@ -275,9 +290,11 @@
 	
 	changed = YES;
 }
+
 - (CGSize)size {
 	return CGSizeMake(CGBitmapContextGetWidth(ctx), CGBitmapContextGetHeight(ctx));
 }
+
 - (void)drawInRect:(CGRect)r {
 	CGContextRef context = UIGraphicsGetCurrentContext();
 	
@@ -301,6 +318,7 @@
 	
 	CGImageRelease(image);
 }
+
 - (CGContextRef)graphicsContext {
 	return ctx;
 }
@@ -329,6 +347,7 @@
 	free(bitmapData);
 	[super dealloc];
 }
+
 @end
 
 @implementation UIImage (ANImageBitmapRep)

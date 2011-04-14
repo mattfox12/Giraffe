@@ -16,6 +16,7 @@
 	BOOL changed;
 	char * bitmapData;
 }
+
 - (id)initWithSize:(CGSize)sz;
 - (void)setNeedsUpdate;
 - (void)setQuality:(float)percent;
@@ -36,6 +37,7 @@
 - (void)drawInRect:(CGRect)r;
 - (CGContextRef)graphicsContext;
 - (void)invertColors;
+
 @end
 
 @interface UIImage (ANImageBitmapRep)

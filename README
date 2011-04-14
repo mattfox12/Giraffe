@@ -1,15 +1,27 @@
-A simple GIF encoding class library for creating small animated GIF images.  This encoder does not use LZW compression, but instead uses uncompressed GIFs by insert clear codes as needed, and forcing bytes to be nine bits.  Encode an animated gif of three images (ball.png, ball1.png, ball2.png) as follows:
+A simple GIF encoding class library for creating small animated GIF images.  This encoder does not use LZW compression, but instead uses uncompressed GIFs by insert clear codes as needed, and forcing bytes to be nine bits. Added a palette class to create palette from an image (single at this point), which will reduce itself to 255 colors (if necessary) using a median-cut algorithm.
 
-NSString * fileName = [NSString stringWithFormat:@"%@/Documents/foo.gif", NSHomeDirectory()];
-ANGifBitmap * bmp = [[ANGifBitmap alloc] initWithImage:[UIImage imageNamed:@"ball.png"]];
-ANGifBitmap * bmp2 = [[ANGifBitmap alloc] initWithImage:[UIImage imageNamed:@"ball2.png"]];
-ANGifBitmap * bmp3 = [[ANGifBitmap alloc] initWithImage:[UIImage imageNamed:@"ball3.png"]];
-ANGifEncoder * enc = [[ANGifEncoder alloc] initWithFile:fileName animated:YES];
-[enc beginFile:bmp.size
-	 delayTime:0.5];
+Encode an animated gif of two partially transparent png images (matt1.png, matt2.png) as follows:
+
+// create Palette first
+UIImage *paletteImage = [UIImage imageNamed:@"Matt.png"];
+ANPoint *mattePoint = [[ANPoint alloc] initWithR:1.0f withG:1.0f withB:1.0f];
+ANGifPalette *palette = [[ANGifPalette alloc] initWithImage:paletteImage.CGImage withMatte:mattePoint];
+
+NSString *fileName = [NSString stringWithFormat:@"%@/Documents/matt_walk.gif", NSHomeDirectory()];
+ANGifBitmap *bmp = [[ANGifBitmap alloc] initWithImage:[UIImage imageNamed:@"matt1.png"] withColorPalette:palette];
+ANGifBitmap *bmp2 = [[ANGifBitmap alloc] initWithImage:[UIImage imageNamed:@"matt2.png"] withColorPalette:palette];
+ANGifEncoder *enc = [[ANGifEncoder alloc] initWithFile:fileName withColorPalette:palette animated:YES];
+
+// image creation
+[enc beginFile:bmp.size delayTime:0.5f];
 [enc addImage:bmp];
 [enc addImage:bmp2];
-[enc addImage:bmp3];
 [enc endFile];
+
+// release objects	
 [enc release];
-NSLog(@"%@", fileName);
+[bmp release];
+[bmp2 release];
+[mattePoint release];
+[palette release];
+[fileName release];

@@ -3,12 +3,15 @@
 //  Giraffe
 //
 //  Created by Alex Nichol on 1/20/11.
-//  Copyright 2011 __MyCompanyName__. All rights reserved.
+//  Modified by Matthew Klundt on 4/12/11.
+//  Copyright 2011. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
 #import "ANGifBitmap.h"
 #import "BitBuffer.h"
+
+@class ANGifPalette;
 
 @interface ANGifEncoder : NSObject {
 	NSString * _fileName;
@@ -16,9 +19,13 @@
 	CGSize _size;
 	float _delay;
 	BOOL _animated;
+	
+	ANGifPalette *colorPalette;
 }
 
-- (id)initWithFile:(NSString *)fileName animated:(BOOL)animated;
+@property (nonatomic, retain) ANGifPalette *colorPalette;
+
+- (id)initWithFile:(NSString *)fileName withColorPalette:(ANGifPalette*)givenPalette animated:(BOOL)animated;
 - (void)beginFile:(CGSize)size delayTime:(float)delay;
 - (void)addImage:(ANGifBitmap *)bitmap;
 - (void)endFile;
