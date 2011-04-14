@@ -27,9 +27,9 @@
 	self = [super init];
 	
 	// create matted rgb based on alpha, given matte color
-	float newR = ((float)givenR * (float)givenA/255.0f) + (1.0f - (float)givenA/255.0f) * (float)givenMR; // RF + (1 - AF)×RB
-	float newG = ((float)givenG * (float)givenA/255.0f) + (1.0f - (float)givenA/255.0f) * (float)givenMG; // RF + (1 - AF)×RB
-	float newB = ((float)givenB * (float)givenA/255.0f) + (1.0f - (float)givenA/255.0f) * (float)givenMB; // RF + (1 - AF)×RB
+	float newR = ((float)givenR/255.0f * (float)givenA) + ((float)(255 - givenA) / 255.0f) * (float)givenMR/255.0f; // RF + (1 - AF)×RB
+	float newG = ((float)givenG/255.0f * (float)givenA) + ((float)(255 - givenA) / 255.0f) * (float)givenMG/255.0f; // RF + (1 - AF)×RB
+	float newB = ((float)givenB/255.0f * (float)givenA) + ((float)(255 - givenA) / 255.0f) * (float)givenMB/255.0f; // RF + (1 - AF)×RB
 	
 	r = (int)(newR * 255.0f);
 	g = (int)(newG * 255.0f);

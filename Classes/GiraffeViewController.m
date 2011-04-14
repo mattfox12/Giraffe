@@ -51,7 +51,7 @@
 - (void) convert {
 	// create Palette first
 	UIImage *paletteImage = [UIImage imageNamed:@"Matt.png"];
-	ANPoint *mattePoint = [[ANPoint alloc] initWithR:1.0f withG:1.0f withB:1.0f]; // this makes the color behind partially transparent pixels white
+	ANPoint *mattePoint = [[ANPoint alloc] initWithR:255 withG:255 withB:255]; // this makes the color behind partially transparent pixels white
 	ANGifPalette *palette = [[ANGifPalette alloc] initWithImage:paletteImage.CGImage withMatte:mattePoint];
 	
 	NSString *fileName = [NSString stringWithFormat:@"%@/Documents/matt_walk.gif", NSHomeDirectory()];
