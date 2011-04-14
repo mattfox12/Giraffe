@@ -9,8 +9,14 @@
 #import <UIKit/UIKit.h>
 
 @interface GiraffeViewController : UIViewController {
-
+	UILabel *timeLabel;
 }
+
+@property (nonatomic, retain) IBOutlet UILabel *timeLabel;
+
+- (IBAction) createGIFImage:(id)sender;
+
+- (void) convert;
 
 @end
 
