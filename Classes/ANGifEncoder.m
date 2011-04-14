@@ -214,7 +214,7 @@
 	[gce appendData:[NSData dataWithBytes:&transColor length:1]];
 	
 	// animation delay (hundreths of a second)
-	UInt16 delayTime = (UInt16)((int)_delay * 100);
+	UInt16 delayTime = (UInt16)((int)(_delay * 100));
 	[gce appendData:[NSData dataWithBytes:&delayTime length:2]];
 	
 	// transparent color index (0) -- changed to last  index
