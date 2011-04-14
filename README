@@ -4,7 +4,7 @@ Encode an animated gif of two partially transparent png images (matt1.png, matt2
 
 // create Palette first
 UIImage *paletteImage = [UIImage imageNamed:@"Matt.png"];
-ANPoint *mattePoint = [[ANPoint alloc] initWithR:1.0f withG:1.0f withB:1.0f];
+ANPoint *mattePoint = [[ANPoint alloc] initWithR:255 withG:255 withB:255];
 ANGifPalette *palette = [[ANGifPalette alloc] initWithImage:paletteImage.CGImage withMatte:mattePoint];
 
 NSString *fileName = [NSString stringWithFormat:@"%@/Documents/matt_walk.gif", NSHomeDirectory()];
