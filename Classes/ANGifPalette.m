@@ -253,7 +253,7 @@
 	[blockQueue addObject:initialBlock];
 	
 	// main loop through block until enough palettes are created
-	while ([blockQueue count] < 254 && [[blockQueue objectAtIndex:0] getLongestSideLength] > 0) {
+	while ([blockQueue count] < 254) {
 		// save and pop first object
 		ANBlock *longestBlock = [blockQueue objectAtIndex:0];
 		
@@ -301,9 +301,9 @@
 		for (int j=0; j < currentBlock.pointsLength; j++) {
 			ANPoint *currentPoint = [currentBlock.points objectAtIndex:j];
 			
-			rSum += (float)[currentPoint getR]/255.0f;
-			gSum += (float)[currentPoint getG]/255.0f;
-			bSum += (float)[currentPoint getB]/255.0f;
+			rSum += (float)[currentPoint getR];
+			gSum += (float)[currentPoint getG];
+			bSum += (float)[currentPoint getB];
 		}
 		
 		// create point from average value
@@ -317,15 +317,11 @@
 		[averagePoint release];
 	}
 	
-	// eliminate duplicate palette indexes
-	NSMutableArray *combinedPalette = [self cullDuplicatePoints:averagePoints];
-	
 	// release
 	[blockQueue release];
 	[initialBlock release];
-	[averagePoints release];
 	
-	return combinedPalette;
+	return averagePoints;
 }
 
 - (void) dealloc {
